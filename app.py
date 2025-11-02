@@ -5,14 +5,13 @@ import requests
 
 app = Flask(__name__)
 
-# PERMITE que tu web pueda llamarte (ajusta tu dominio aquí)
+# ✅ CORS correcto
 CORS(app, origins=[
     "https://agi-sentinel.com",
     "https://www.agi-sentinel.com",
-    "https://www.wasfiyassin.github.io",
-    "https://wasgiyassin.github.io/agi-sentinel-chatbot-ui",
-    "http://localhost:5500",   # por si pruebas local con VSCode Live Server
-    "http://127.0.0.1:5500"
+    "https://wasfiyassin.github.io",   # 👈 GitHub Pages (sin www)
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
 ])
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -26,11 +25,11 @@ def chat():
 
     # compatibilidad con formato viejo { "message": "hola" }
     if not messages:
-      user_message = data.get("message", "")
-      messages = [
-          {"role": "system", "content": "Eres un asistente de AGi Sentinel."},
-          {"role": "user", "content": user_message},
-      ]
+        user_message = data.get("message", "")
+        messages = [
+            {"role": "system", "content": "Eres un asistente de AGi Sentinel."},
+            {"role": "user", "content": user_message},
+        ]
 
     payload = {
         "model": "gpt-4o-mini",
@@ -52,7 +51,6 @@ def chat():
         return jsonify({"error": "openai-error", "detail": str(e)}), 500
 
 
-# opcional: para el comando /web
 @app.post("/browse")
 def browse():
     data = request.get_json() or {}
@@ -61,15 +59,20 @@ def browse():
         return jsonify({"error": "missing-url"}), 400
 
     try:
-        resp = requests.get(url, timeout=15, headers={"User-Agent": "AGiSentinelBot/1.0"})
-        return jsonify({
-            "status": resp.status_code,
-            "content": resp.text[:5000]
-        })
+        resp = requests.get(
+            url,
+            timeout=15,
+            headers={"User-Agent": "AGiSentinelBot/1.0"},
+        )
+        return jsonify(
+            {
+                "status": resp.status_code,
+                "content": resp.text[:5000],
+            }
+        )
     except Exception as e:
         return jsonify({"error": "browse-failed", "detail": str(e)}), 500
 
 
 if __name__ == "__main__":
-    # en local
     app.run(host="0.0.0.0", port=5000, debug=True)
