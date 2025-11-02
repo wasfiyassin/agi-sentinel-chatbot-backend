@@ -5,14 +5,8 @@ import requests
 
 app = Flask(__name__)
 
-# ✅ CORS correcto
-CORS(app, origins=[
-    "https://agi-sentinel.com",
-    "https://www.agi-sentinel.com",
-    "https://wasfiyassin.github.io",   # 👈 GitHub Pages (sin www)
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-])
+# 👇 mientras montas todo: abierto
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
@@ -23,7 +17,6 @@ def chat():
     data = request.get_json() or {}
     messages = data.get("messages")
 
-    # compatibilidad con formato viejo { "message": "hola" }
     if not messages:
         user_message = data.get("message", "")
         messages = [
@@ -59,17 +52,8 @@ def browse():
         return jsonify({"error": "missing-url"}), 400
 
     try:
-        resp = requests.get(
-            url,
-            timeout=15,
-            headers={"User-Agent": "AGiSentinelBot/1.0"},
-        )
-        return jsonify(
-            {
-                "status": resp.status_code,
-                "content": resp.text[:5000],
-            }
-        )
+        resp = requests.get(url, timeout=15, headers={"User-Agent": "AGiSentinelBot/1.0"})
+        return jsonify({"status": resp.status_code, "content": resp.text[:5000]})
     except Exception as e:
         return jsonify({"error": "browse-failed", "detail": str(e)}), 500
 
