@@ -5,8 +5,24 @@ import requests
 
 app = Flask(__name__)
 
-# 👇 mientras montas todo: abierto
-CORS(app, resources={r"/*": {"origins": "*"}})
+# 👇 mientras montamos todo: abierto
+CORS(
+    app,
+    resources={r"/*": {"origins": "*"}},
+    methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
+
+
+# ✅ ruta raíz para saber si la app está viva
+@app.get("/")
+def root():
+    return jsonify({
+        "status": "ok",
+        "message": "AGi Sentinel backend activo",
+        "endpoints": ["/chat", "/browse"]
+    })
+
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
@@ -17,6 +33,7 @@ def chat():
     data = request.get_json() or {}
     messages = data.get("messages")
 
+    # compatibilidad con { "message": "hola" }
     if not messages:
         user_message = data.get("message", "")
         messages = [
@@ -53,10 +70,14 @@ def browse():
 
     try:
         resp = requests.get(url, timeout=15, headers={"User-Agent": "AGiSentinelBot/1.0"})
-        return jsonify({"status": resp.status_code, "content": resp.text[:5000]})
+        return jsonify({
+            "status": resp.status_code,
+            "content": resp.text[:5000]
+        })
     except Exception as e:
         return jsonify({"error": "browse-failed", "detail": str(e)}), 500
 
 
 if __name__ == "__main__":
+    # para local
     app.run(host="0.0.0.0", port=5000, debug=True)
