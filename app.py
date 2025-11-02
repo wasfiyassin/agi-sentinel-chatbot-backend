@@ -9,6 +9,8 @@ app = Flask(__name__)
 CORS(app, origins=[
     "https://agi-sentinel.com",
     "https://www.agi-sentinel.com",
+    "https://www.wasfiyassin.github.io",
+    "https://wasgiyassin.github.io/agi-sentinel-chatbot-ui",
     "http://localhost:5500",   # por si pruebas local con VSCode Live Server
     "http://127.0.0.1:5500"
 ])
